@@ -1,123 +1,146 @@
 /* constants */
-const outputFolder = 'dist';
+const outputFolder = "dist";
 
 /* imports */
-const path = require('path');
-const webpack = require('webpack');
-const NodeExternals = require('webpack-node-externals');
-const CopyWebpackPlugin = require('copy-webpack-plugin');
-const ImageminPlugin = require('imagemin-webpack-plugin').default;
-const SWPrecacheWebpackPlugin = require('sw-precache-webpack-plugin');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
-const StyleLintPlugin = require('stylelint-webpack-plugin');
-const CleanWebpackPlugin = require('clean-webpack-plugin');
+const path = require("path");
+const webpack = require("webpack");
+const NodeExternals = require("webpack-node-externals");
+const CopyWebpackPlugin = require("copy-webpack-plugin");
+const ImageminPlugin = require("imagemin-webpack-plugin").default;
+const SWPrecacheWebpackPlugin = require("sw-precache-webpack-plugin");
+const ExtractTextPlugin = require("extract-text-webpack-plugin");
+const StyleLintPlugin = require("stylelint-webpack-plugin");
+const CleanWebpackPlugin = require("clean-webpack-plugin");
 
 let node = {
-    name: 'node',
-    devtool: 'source-map',
-    target: 'node',
+    name: "node",
+    devtool: "source-map",
+    target: "node",
     node: {
         __dirname: true
     },
     externals: [NodeExternals()],
-    entry: [
-        './app.babel.js'
-    ],
+    entry: ["./app.babel.js"],
     output: {
         path: __dirname,
-        filename: 'app.js'
+        filename: "app.js"
     },
     plugins: [
         new webpack.optimize.ModuleConcatenationPlugin(),
         new webpack.DefinePlugin({
-            'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
-            'process.env.outputFolder': JSON.stringify(outputFolder),
-        }),
+            "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV),
+            "process.env.outputFolder": JSON.stringify(outputFolder)
+        })
     ],
     module: {
-        loaders: [{
-            enforce: 'pre',
-            test: /\.js$/,
-            loader: 'eslint-loader',
-            exclude: /node_modules/,
-            options: {
-                emitWarning: true
+        loaders: [
+            {
+                enforce: "pre",
+                test: /\.jsx?$/,
+                loader: "eslint-loader",
+                exclude: /node_modules/,
+                options: {
+                    emitWarning: true
+                }
+            },
+            {
+                test: /\.jsx?$/,
+                exclude: /node_modules/,
+                loader: "babel-loader"
             }
-        }, {
-            test: /\.js$/,
-            exclude: /node_modules/,
-            loader: 'babel-loader'
-        }]
+        ]
     }
 };
 
 let web = {
-    name: 'web',
-    devtool: 'source-map',
-    externals:[{
-        xmlhttprequest: '{XMLHttpRequest:XMLHttpRequest}'
-    }],
+    name: "web",
+    devtool: "source-map",
+    externals: [
+        {
+            xmlhttprequest: "{XMLHttpRequest:XMLHttpRequest}"
+        }
+    ],
     entry: {
-        'main.js': './src/js/main.js',
-        'inline.css': './src/scss/inline.scss',
-        'style.css': './src/scss/style.scss'
+        "main.js": "./src/js/main.jsx",
+        "inline.css": "./src/scss/inline.scss",
+        "style.css": "./src/scss/style.scss"
     },
     output: {
         path: path.join(__dirname, outputFolder),
-        filename: '[name]'
+        filename: "[name]"
     },
     plugins: [
         new webpack.optimize.ModuleConcatenationPlugin(),
-        new CleanWebpackPlugin('./dist'),
+        new CleanWebpackPlugin("./dist"),
         new ExtractTextPlugin({
             filename: `[name]`,
-            allChunks: true,
+            allChunks: true
         }),
-        new CopyWebpackPlugin([{
-            from: './src/img/',
-            to: 'img/'
-        }, {
-            from: './src/manifest.json',
-            to: './'
-        }, {
-            from: './src/sw.js',
-            to: './'
-        }, {
-            from: './src/templates/',
-            to: 'templates/'
-        }, {
-            from: './api/**/*.json',
-            to: ''
-        }]),
+        new CopyWebpackPlugin([
+            {
+                from: "./src/img/",
+                to: "img/"
+            },
+            {
+                from: "./src/manifest.json",
+                to: "./"
+            },
+            {
+                from: "./src/sw.js",
+                to: "./"
+            },
+            {
+                from: "./src/templates/",
+                to: "templates/"
+            },
+            {
+                from: "./api/**/*.json",
+                to: ""
+            }
+        ]),
         new ImageminPlugin({
             test: /\.(jpe?g|png|gif|svg)$/i,
             pngquant: {
-                quality: '95-100'
+                quality: "95-100"
             }
         }),
         new StyleLintPlugin()
     ],
     module: {
-        loaders: [{
-            enforce: 'pre',
-            test: /\.js$/,
-            loader: 'eslint-loader',
-            exclude: /node_modules/,
-            options: {
-                emitWarning: true
+        loaders: [
+            {
+                enforce: "pre",
+                test: /\.jsx?$/,
+                loader: "eslint-loader",
+                exclude: /node_modules/,
+                options: {
+                    emitWarning: true
+                }
+            },
+            {
+                test: /\.jsx?$/,
+                exclude: /node_modules/,
+                loader: "babel-loader",
+                query: {
+                    presets: ["es2015", "react"]
+                }
+            },
+            {
+                test: /\.(sass|scss)$/,
+                exclude: /node_modules/,
+                loader: ExtractTextPlugin.extract({
+                    fallback: "style-loader",
+                    use: ["css-loader", "postcss-loader", "sass-loader"]
+                })
+            },
+            {
+                test: /\.(png|jpg|svg|ico|gif)$/,
+                loader: "url-loader"
             }
-        }, {
-            test: /\.js$/,
-            exclude: /node_modules/,
-            loader: 'babel-loader'
-        }, {
-            test: /\.(sass|scss)$/,
-            exclude: /node_modules/,
-            loader: ExtractTextPlugin.extract({ fallback: 'style-loader', use: ['css-loader', 'postcss-loader', 'sass-loader'] })
-        }, {
-            test: /\.(png|jpg|svg|ico|gif)$/,
-            loader: 'url-loader'
-        }]
+        ]
+    },
+    resolve: {
+        extensions: [".js", ".jsx"]
     }
 };
 
